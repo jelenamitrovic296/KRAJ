@@ -1,0 +1,32 @@
+"""
+URL configuration for student_graph project.
+
+The `urlpatterns` list routes URLs to views. For more information please see:
+    https://docs.djangoproject.com/en/4.2/topics/http/urls/
+Examples:
+Function views
+    1. Add an import:  from my_app import views
+    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+Class-based views
+    1. Add an import:  from other_app.views import Home
+    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+Including another URLconf
+    1. Import the include() function: from django.urls import include, path
+    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+"""
+from django.contrib import admin
+from django.urls import path,include
+from graph import views  # Uvezi svoje view-ove
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', views.student_graph, name='home'),  # početna = glavna stranica, auto-ulogovan kao gost
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path("student-graph/", views.student_graph, name="student_graph"),
+   path('current-user/', views.get_current_user, name='current_user'),  # DODAJ OVO
+    path('sviStudentiISviProfesori', views.student_graph,name = 'student_graph'),
+    path('zanimljivosti/', views.zanimljivosti, name='zanimljivosti'),
+    path('statistika', views.student_graph,name = 'student_graph')
+    
+]

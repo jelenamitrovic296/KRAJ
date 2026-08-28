@@ -1,0 +1,919 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Graph</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="stylesheet" href="{% static 'css/stil.css' %}">
+</head>
+<body>
+
+<div id="zanimljivosti-sekcija" style="display: none;"></div>
+
+<script>
+    // Server već zna ulogu iz sesije — nema potrebe čekati fetch() da bismo znali
+    // da li smo admin, pa admin ikonice ne trepere ni na klik "nazad".
+    window.KORISNICKA_ULOGA = "{{ korisnicka_uloga|default:'guest' }}";
+</script>
+<div class="app-wrapper" id="meni" style="display:none;">
+    <div id="auth-status" class="auth-status"></div>
+    <header class="hero">
+        <h1>Приказ менторства на Математичком факултету</h1>
+        <p>Управљање студентима, професорима и њиховим академским везама</p>
+    </header>
+    <section class="cards">
+        <button class="card" id="pretraziStudenta" type="button">
+            <i class="fas fa-search"></i>
+            <h3>Претражи студенте</h3>
+            <p>Претрага студената по имену, смеру и години.</p>
+        </button>
+        <button class="card" id="pretraziProfesora" type="button">
+            <i class="fas fa-search"></i>
+            <h3>Претражи професоре</h3>
+            <p>Проналажење професора и њихових студената.</p>
+        </button>
+        <button class="card" id="dodajNovogStudenta" type="button" style="display:none;">
+            <i class="fas fa-user-plus"></i>
+            <h3>Додај студента</h3>
+            <p>Унос новог студента у систем.</p>
+        </button>
+        <button class="card" id="azurirajInformacijeOStudentu" type="button" style="display:none;">
+            <i class="fas fa-edit"></i>
+            <h3>Ажурирај студента</h3>
+            <p>Измена постојећих података о студенту.</p>
+        </button>
+        <button class="card" id="dodajNovogProfesora" type="button" style="display:none;">
+            <i class="fas fa-user-tie"></i>
+            <h3>Додај професора</h3>
+            <p>Унос новог професора</p>
+        </button>
+        <button class="card" id="izbrisiStudentaIzBaze" type="button" style="display:none;">
+            <i class="fas fa-user-minus"></i>
+            <h3>Избриши студента</h3>
+            <p>Трајно уклањање студента из базе.</p>
+        </button>
+        <button class="card" id="izbrisiProfesoraIzBaze" type="button" style="display:none;">
+            <i class="fas fa-user-minus"></i>
+            <h3>Избриши професора</h3>
+            <p>Брисање професора из система.</p>
+        </button>
+        <button class="card" id="sviStudentiISviProfesori" type="button">
+            <i class="fas fa-users"></i>
+            <h3>Сви студенти и професори</h3>
+            <p>Комплетан приказ свих података.</p>
+        </button>
+        <button class="card" id="zanimljivosti" type="button">
+            <i class="fas fa-lightbulb"></i>
+            <h3>Занимљивости</h3>
+            <p>Статистика и занимљиви односи у подацима.</p>
+        </button>
+    </section>
+</div>
+<div id="studentska-forma" class="form-wrapper" style="display:none;">
+    <div class="form-navigation">
+        <button type="button" class="back-arrow" onclick="window.location.href='/student-graph'">
+            <i class="fas fa-arrow-left"></i> Назад на мени
+        </button>
+    </div>
+
+    <div class="form-sections">
+    
+        <form method="get" action="/student-graph">
+            <input type="hidden" name="forma" value="student">
+            <div class="form-section">
+                <h2>Претрага једног студента</h2>
+                <input type="text" id="ime_studenta" name="ime_studenta" placeholder="Унесите име">
+                <input type="text" id="prezime_studenta" name="prezime_studenta" placeholder="Унесите презиме">
+                <input type="text" id="naslov_jednog" name="naslov_jednog" placeholder="Унесите наслов рада">
+                <button type="submit"  onclick="proveriUnosZaJednogStudenta('ime_studenta','prezime_studenta', 'naslov_jednog',event)">Прикажи менторство</button>
+                <p id="poruka-greske" style="color: red; display: none; font-weight: bold; margin-top: 10px;"></p>
+            </div>
+        </form>
+
+        <form method="get" action="/student-graph">
+            <input type="hidden" name="forma" value="student">
+            <div class="form-section">
+                <h2>Претрага више студената</h2>
+                <input type="text" id="ime_studenta_vise" name="ime_studenta_vise" placeholder="Унесите име">
+                <input type="text" id="prezime_studenta_vise" name="prezime_studenta_vise" placeholder="Унесите презиме">
+                <input type="text" id="smer" name="smer" placeholder="Унесите смер">
+                <input type="text" id="naslov" name="naslov" placeholder="Унесите наслов рада">
+                <input type="text" id="godina_odbrane" name="godina_odbrane" placeholder="Унесите тачну годину одбране">
+                <input type="text" id="godina_od" name="godina_od" placeholder="Година (од)">
+                <input type="text" id="godina_do" name="godina_do" placeholder="Година (до)">
+                <select id="tip_teze" name="tip_teze" style="width: 100%; color: gray;">
+                    <option value="">Изаберите тип тезе</option>
+                    <option value="Мастер рад">Мастер рад</option>
+                    <option value="Докторска теза">Докторска теза</option>
+                </select>
+                <div class="radio-group">
+                    <div style="display: inline-block; margin-right: 15px;">
+                        <input type="radio" id="tabela" name="prikaz" value="tabela">
+                        <label for="tabela">Табела</label>
+                    </div>
+                    <div style="display: inline-block;">
+                        <input type="radio" id="graf" name="prikaz" value="graf">
+                        <label for="graf">Граф</label>
+                    </div>
+                    <div style="display: inline-block;">
+                        <input type="radio" id="krug" name="prikaz" value="krug">
+                        <label for="krug">Круг</label>
+                    </div>
+                </div>
+                <button type="submit" onClick="proveriUnosZaViseStudenata('ime_studenta_vise','prezime_studenta_vise','smer','naslov','godina_odbrane','godina_od','godina_do','tip_teze',event)">Прикажи податке</button>
+                <p id="poruka-greske-vise-studenata" style="color: red; display: none; font-weight: bold; margin-top: 10px;"></p>
+            </div>
+        </form>
+
+    </div>
+</div>
+<div id="profesorska-forma" class="form-wrapper" style="display:none;">
+
+    <div class="form-navigation">
+        <button type="button" class="back-arrow" onclick="window.location.href='/student-graph'">
+            <i class="fas fa-arrow-left"></i> Назад на мени
+        </button>
+    </div>
+
+    <div class="form-sections">
+
+        <form method="get" action="/student-graph">
+            <input type="hidden" name="forma" value="profesor">
+
+            <div class="form-section">
+
+                <h2>Форма за претрагу професора</h2>
+
+                <input type="text"
+                       id="ime_profesora"
+                       name="ime_profesora"
+                       value="{{ ime_profesora|default:'' }}"
+                       placeholder="Унесите име професора">
+
+                <input type="text"
+                       id="prezime_profesora"
+                       name="prezime_profesora"
+                       value="{{ prezime_profesora|default:'' }}"
+                       placeholder="Унесите презиме професора">
+
+                <div>
+                    <label for="mentorstvo">
+                        Студенти којима је изабран професор ментор
+                    </label>
+                    <input type="checkbox"
+                           id="mentorstvo"
+                           name="mentorstvo"
+                           value="mentorstvo"
+                           checked>
+                </div>
+
+                <div>
+                    <label for="clan_komisije">
+                        Студенти којима је изабран професор члан комисије
+                    </label>
+                    <input type="checkbox"
+                           id="clan_komisije"
+                           name="clan_komisije"
+                           value="clan_komisije">
+                </div>
+
+                <div>
+                    <label for="rekurzivno">
+                        Рекурзивни приказ
+                    </label>
+                    <input type="checkbox"
+                           id="rekurzivno"
+                           name="rekurzivno"
+                           value="rekurzivno"
+                           disabled>
+                </div>
+
+                <button type="submit"
+                        onclick="proveriUnosImenaIPrezimenaProfesora(event)">
+                    Прикажи податке о студентима изабраног професора
+                </button>
+
+                <button type="submit"
+                        id="statistika"
+                        onclick="proveriUnosImenaIPrezimenaProfesora(event)">
+                    Прикажи статистику о изабраном професору
+                </button>
+
+                <div>
+                    <input type="text"
+                           id="naziv_institucije"
+                           name="naziv_institucije"
+                           value="{{ naziv_institucije|default:'' }}"
+                           placeholder="Унесите назив институције">
+
+                    <button type="submit"
+                            id="pretraziPoInstitucijiDugme"
+                            onclick="proveriUnosInstitucije(event)">
+                        Прикажи професоре са изабране институције
+                    </button>
+
+                    <p id="poruka-za-pretragu-profesora"
+                       style="color: red; display: none; font-weight: bold; margin-top: 10px;">
+                    </p>
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+</div>
+
+
+<div id="dodaj-novo-studenta-forma" class="form-section" style="display:none;">
+    <button type="button" class="back-arrow" onclick="window.location.href='/student-graph'">
+        <i class="fas fa-arrow-left"></i> Назад на мени
+    </button>
+    <form method="POST" action="">
+        {% csrf_token %}
+        <h2>Форма за додавање новог студента</h2>
+        <input type="text" id="ime_novog_studenta"      name="ime_novog_studenta"      value="{{ ime_novog_studenta }}"      placeholder="Унесите име студента">
+        <input type="text" id="prezime_novog_studenta"  name="prezime_novog_studenta"  value="{{ prezime_novog_studenta }}"  placeholder="Унесите презиме студента">
+        <input type="text" id="student_smer"            name="student_smer"            value="{{ student_smer }}"            placeholder="Унесите смер студента">
+        <select id="student_tip_teze" name="student_tip_teze" style="width: 100%;">
+            <option value="">Изаберите тип тезе</option>
+            <option value="Мастер рад">Мастер рад</option>
+            <option value="Докторска теза">Докторска теза</option>
+        </select>
+        <input type="text" id="student_naslov_rada"     name="student_naslov_rada"     value="{{ student_naslov_rada }}"     placeholder="Унесите наслов рада">
+        <input type="text" id="student_godina_odbrane"  name="student_godina_odbrane"  value="{{ student_godina_odbrane }}"  placeholder="Унесите годину одбране">
+        <select id="mentor_id" name="mentor_id">
+            <option value="">Изаберите ментора</option>
+            {% for mentor in lista_svi_profesori %}
+                <option value="{{ mentor.id }}">{{ mentor.ime }} {{ mentor.prezime }} — {{ mentor.institucija }}</option>
+            {% endfor %}
+        </select>
+        <div id="clanovi-komisije">
+            <div class="clan-komisije">
+                <select name="clanovi_komisije[]" class="clan-komisije-select">
+                    <option value="">Изаберите члана комисије</option>
+                    {% for profesor in lista_svi_profesori %}
+                        <option value="{{ profesor.id }}">{{ profesor.ime }} {{ profesor.prezime }} — {{ profesor.institucija }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <button type="button" id="dodaj-novog-clana-dugme">Додај још једног члана комисије</button>
+        <button type="submit" onclick="proveriDodavanjeIAzuriranjeInformacija('ime_novog_studenta','prezime_novog_studenta','student_smer','student_tip_teze','student_naslov_rada','student_godina_odbrane','mentor_id','clanovi-komisije',event)">
+            Додај новог студента у базу
+        </button>
+        <p id="poruka-greske-za-dodavanje" style="color: red; display: none; font-weight: bold; margin-top: 10px;"></p>
+    </form>
+</div>
+
+<div id="izbrisi-studenta-forma" class="form-section" style="display:none;">
+    <button type="button" class="back-arrow" onclick="window.location.href='/student-graph'">
+        <i class="fas fa-arrow-left"></i> Назад на мени
+    </button>
+
+    <form method="GET" action="/student-graph/">
+        <input type="hidden" name="forma" value="brisi-studenta">
+        <h2>Претрага студента за брисање</h2>
+        <input type="text" id="ime_studenta_za_pretragu_brisanja" name="ime_studenta_za_brisanje" value="{{ ime_studenta_za_brisanje_pretraga|default:'' }}" placeholder="Унесите име студента" required>
+        <input type="text" id="prezime_studenta_za_pretragu_brisanja" name="prezime_studenta_za_brisanje" value="{{ prezime_studenta_za_brisanje_pretraga|default:'' }}" placeholder="Унесите презиме студента" required>
+        <button type="submit" onclick="proveriFormuZaPretraguBrisanjaStudenta('ime_studenta_za_pretragu_brisanja','prezime_studenta_za_pretragu_brisanja',event)">
+            Претражи студенте
+        </button>
+        <p id="poruka-za-brisanje-student" style="color: red; display: none; font-weight: bold; margin-top: 10px;"></p>
+    </form>
+</div>
+
+<div id="dodaj-novog-profesora-forma" class="form-section" style="display:none;">
+    <button type="button" class="back-arrow" onclick="window.location.href='/student-graph'">
+        <i class="fas fa-arrow-left"></i> Назад на мени
+    </button>
+    <form method="POST" action="">
+        {% csrf_token %}
+        <h2>Форма за додавање новог професора</h2>
+        <input type="text" id="ime_novog_profesora"         name="ime_novog_profesora"         placeholder="Унесите име професора">
+        <input type="text" id="prezime_novog_profesora"     name="prezime_novog_profesora"     placeholder="Унесите презиме професора">
+        <input type="text" id="institucija_novog_profesora" name="institucija_novog_profesora" placeholder="Унесите назив институције">
+        <button type="submit" onclick="proveriUnosNovogProfesora('ime_novog_profesora','prezime_novog_profesora','institucija_novog_profesora',event)">
+            Додај новог професора у базу
+        </button>
+        <p id="poruka-za-dodavanje-profesora" style="color: red; display: none; font-weight: bold; margin-top: 10px;"></p>
+    </form>
+</div>
+
+<div id="izbrisi-profesora-forma" class="form-section" style="display:none;">
+    <button type="button" class="back-arrow" onclick="window.location.href='/student-graph'">
+        <i class="fas fa-arrow-left"></i> Назад на мени
+    </button>
+
+    <form method="GET" action="/student-graph/">
+        <input type="hidden" name="forma" value="brisi-profesora">
+        <h2>Претрага професора за брисање</h2>
+        <input type="text" id="ime_profesora_za_pretragu_brisanja" name="ime_profesora_za_brisanje" value="{{ ime_profesora_za_brisanje_pretraga|default:'' }}" placeholder="Унесите име професора" required>
+        <input type="text" id="prezime_profesora_za_pretragu_brisanja" name="prezime_profesora_za_brisanje" value="{{ prezime_profesora_za_brisanje_pretraga|default:'' }}" placeholder="Унесите презиме професора" required>
+        <button type="submit" onclick="proveriFormuZaPretraguBrisanjaProfesora('ime_profesora_za_pretragu_brisanja','prezime_profesora_za_pretragu_brisanja',event)">
+            Претражи професоре
+        </button>
+        <p id="poruka-za-brisanje-profesor" style="color: red; display: none; font-weight: bold; margin-top: 10px;"></p>
+    </form>
+</div>
+</div>
+
+<div id="pretrazi-azuriraj-studenta-forma" class="form-section" style="display:none;">
+    <button type="button" class="back-arrow" onclick="window.location.href='/student-graph'">
+        <i class="fas fa-arrow-left"></i> Назад на мени
+    </button>
+
+    <form method="GET" action="/student-graph/">
+        <input type="hidden" name="forma" value="pretrazi-azuriraj-studenta">
+        <h2>Претрага студента за ажурирање</h2>
+        <input type="text" id="ime_studenta_za_pretragu_azuriranja" name="ime_pretraga_azuriranje_student" value="{{ ime_studenta_za_azuriranje_pretraga|default:'' }}" placeholder="Унесите име студента" required>
+        <input type="text" id="prezime_studenta_za_pretragu_azuriranja" name="prezime_pretraga_azuriranje_student" value="{{ prezime_studenta_za_azuriranje_pretraga|default:'' }}" placeholder="Унесите презиме студента" required>
+        <button type="submit" onclick="proveriFormuZaPretraguAzuriranjaStudenta('ime_studenta_za_pretragu_azuriranja','prezime_studenta_za_pretragu_azuriranja',event)">
+            Претражи студенте
+        </button>
+        <p id="poruka-za-azuriranje-pretraga-student" style="color: red; display: none; font-weight: bold; margin-top: 10px;"></p>
+    </form>
+</div>
+
+<div id="azuriraj-informacije-o-studentu-forma" class="form-section" style="display:none;">
+    <button type="button" class="back-arrow" onclick="window.location.href='/student-graph'">
+        <i class="fas fa-arrow-left"></i> Назад на мени
+    </button>
+
+    <form method="POST" action="">
+        {% csrf_token %}
+        <h2 class="form-title">Ажурирање информација о студенту</h2>
+
+        <div class="form-group-card">
+            <div class="form-group-header">
+                <span class="form-group-icon">🔍</span>
+                <span>Студент кога ажурирате</span>
+            </div>
+            <p style="font-size: 16px; margin: 0;">
+                <strong>{{ ime_studenta_za_azuriranje }} {{ prezime_studenta_za_azuriranje }}</strong>
+                — <em>{{ naslov_rada_studenta_za_azuriranje }}</em>
+            </p>
+            <input type="hidden" id="ime_studenta_za_azuriranje" name="ime_studenta_za_azuriranje" value="{{ ime_studenta_za_azuriranje }}">
+            <input type="hidden" id="prezime_studenta_za_azuriranje" name="prezime_studenta_za_azuriranje" value="{{ prezime_studenta_za_azuriranje }}">
+            <input type="hidden" id="naslov_rada_studenta_za_azuriranje" name="naslov_rada_studenta_za_azuriranje" value="{{ naslov_rada_studenta_za_azuriranje }}">
+        </div>
+
+        <div class="form-group-card">
+            <div class="form-group-header">
+                <span class="form-group-icon">📋</span>
+                <span>Унесите нове податке о студенту</span>
+            </div>
+            <div class="form-row">
+                <div class="form-field">
+                    <label>Смер</label>
+                    <input type="text" id="azurirani_student_smer" name="azurirani_student_smer"
+                        value="{{ azurirani_student_smer }}" placeholder="Унесите смер">
+                </div>
+                <div class="form-field">
+                    <label>Тип тезе</label>
+                    <select id="azurirani_student_tip_teze" name="azurirani_student_tip_teze">
+                        <option value="">Изаберите тип тезе</option>
+                        <option value="Мастер рад">Мастер рад</option>
+                        <option value="Докторска теза">Докторска теза</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-field">
+                    <label>Наслов рада</label>
+                    <input type="text" id="azurirani_student_naslov_rada" name="azurirani_student_naslov_rada"
+                        value="{{ azurirani_student_naslov_rada }}" placeholder="Унесите наслов рада">
+                </div>
+                <div class="form-field">
+                    <label>Година одбране</label>
+                    <input type="text" id="azurirani_student_godina_odbrane" name="azurirani_student_godina_odbrane"
+                        value="{{ azurirani_student_godina_odbrane }}" placeholder="нпр. 2024">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group-card">
+            <div class="form-group-header">
+                <span class="form-group-icon">👨‍🏫</span>
+                <span>Ментор и комисија</span>
+            </div>
+            <div class="form-field">
+                <label>Ментор</label>
+                <select id="azurirani_mentor_id" name="azurirani_mentor_id">
+                    <option value="">Изаберите ментора</option>
+                    {% for mentor in lista_svi_profesori %}
+                        <option value="{{ mentor.id }}">{{ mentor.ime }} {{ mentor.prezime }} — {{ mentor.institucija }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-field">
+                <label>Чланови комисије</label>
+                <div id="clanovi-azurirane-komisije">
+                    <div class="clan-azurirane-komisije">
+                        <select name="azurirani_clanovi_komisije[]" class="clan-azurirane-komisije-select">
+                            <option value="">Изаберите члана комисије</option>
+                            {% for profesor in lista_svi_profesori %}
+                                <option value="{{ profesor.id }}">{{ profesor.ime }} {{ profesor.prezime }} — {{ profesor.institucija }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <button type="button" id="dodaj-novog-azuriranog-clana-dugme" class="btn-add-member">
+                    + Додај још једног члана
+                </button>
+            </div>
+        </div>
+
+        <p id="poruka-greske-za-azuriranje" style="color: #c0392b; display: none; font-weight: bold; margin-top: 10px;"></p>
+
+        <button type="submit"
+            onclick="proveriDodavanjeIAzuriranjeInformacija('ime_studenta_za_azuriranje','prezime_studenta_za_azuriranje','azurirani_student_smer','azurirani_student_tip_teze','azurirani_student_naslov_rada','azurirani_student_godina_odbrane','azurirani_mentor_id','clanovi-azurirane-komisije','naslov_rada_studenta_za_azuriranje',event)"
+            class="btn-submit">
+            Ажурирај податке о студенту
+        </button>
+    </form>
+</div>
+<!-- ===== MODAL ===== -->
+<div id="adminModal" class="modal hidden">
+    <div class="modal-card">
+        <h3>⚠️ Нема дозволе</h3>
+        <p>Морате бити пријављени као администратор да бисте извршили ову акцију.</p>
+        <button id="closeModal">У реду</button>
+    </div>
+</div>
+
+<div id="statistika-container"></div>
+<div id="profesori-institucija-container"></div>
+
+<script>
+const profesori = [
+    {% for profesor in lista_svi_profesori %}
+    {
+        id:         "{{ profesor.id }}",
+        ime:        "{{ profesor.ime }}",
+        prezime:    "{{ profesor.prezime }}",
+        institucija:"{{ profesor.institucija }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+</script>
+
+<script>
+const podaciStatistikaProfesora = {
+    ime_profesora:     "{{ ime_profesora|escapejs }}",
+    prezime_profesora: "{{ prezime_profesora|escapejs }}",
+    statistika: [
+        {% if statistika %}
+        {% for red in statistika %}
+        { tip: "{{ red.tip|escapejs }}", broj_studenta: {{ red.broj_studenta }} }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+        {% endif %}
+    ],
+    profesori_sa_izabrane_institucije: [
+        {% if profesori_sa_izabrane_institucije %}
+        {% for profesor in profesori_sa_izabrane_institucije %}
+        ["{{ profesor.0|escapejs }}", "{{ profesor.1|escapejs }}", "{{ profesor.2|escapejs }}"]{% if not forloop.last %},{% endif %}
+        {% endfor %}
+        {% endif %}
+    ]
+};
+</script>
+
+<script src="{% static 'js/utils.js' %}"></script>
+<script src="{% static 'js/validacije.js' %}"></script>
+<script src="{% static 'js/grafovi.js' %}"></script>
+<script src="{% static 'js/navigacija.js' %}"></script>
+<script src="{% static 'js/profesor_statistika.js' %}"></script>
+
+
+{% if lista_studenata %}
+<h2 style="text-align:center;" class="student-graph-title">Студенти који задовољавају критеријуме</h2>
+<div class="table-container">
+    <table class="custom-table" id="tabela-studenata">
+        <thead>
+            <tr>
+                <th>Редни број</th>
+                <th>Име</th>
+                <th>Презиме</th>
+                <th>Наслов</th>
+                <th>Смер</th>
+                <th>Тип тезе</th>
+                <th>Година одбране</th>
+                <th>Прикажи граф</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in lista_studenata %}
+            <tr data-ime="{{ student.ime}}" 
+    data-prezime="{{ student.prezime }}" 
+    data-smer="{{ student.smer }}" 
+    data-tip_teze="{{ student.tip_teze }}" 
+    data-naslov="{{ student.naslov }}" 
+    data-godina="{{ student.godina_odbrane }}">
+                <td>{{ forloop.counter }}</td>
+                <td>{{ student.ime }}</td>
+                <td>{{ student.prezime }}</td>
+                <td>{{ student.naslov }}</td>
+                <td>{{ student.smer }}</td>
+                <td>{{ student.tip_teze }}</td>
+                <td>{{ student.godina_odbrane }}</td>
+                <td><button class="btn-prikazi-graf">Прикажи граф</button></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script src="{% static 'js/lista_studenata.js' %}"></script>
+{% endif %}
+
+{% if lista_studenata_za_brisanje %}
+<h2 style="text-align:center;" class="student-graph-title">Изаберите студента којег желите да обришете</h2>
+<div class="table-container">
+    <table class="custom-table" id="tabela-studenata-za-brisanje">
+        <thead>
+            <tr>
+                <th>Редни број</th>
+                <th>Име</th>
+                <th>Презиме</th>
+                <th>Наслов</th>
+                <th>Смер</th>
+                <th>Тип тезе</th>
+                <th>Година одбране</th>
+                <th>Акција</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in lista_studenata_za_brisanje %}
+            <tr data-ime="{{ student.ime }}" data-prezime="{{ student.prezime }}" data-naslov="{{ student.naslov }}">
+                <td>{{ forloop.counter }}</td>
+                <td>{{ student.ime }}</td>
+                <td>{{ student.prezime }}</td>
+                <td>{{ student.naslov }}</td>
+                <td>{{ student.smer }}</td>
+                <td>{{ student.tip_teze }}</td>
+                <td>{{ student.godina_odbrane }}</td>
+                <td><button type="button" class="btn-izbrisi-studenta">Избриши</button></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<form id="forma-za-stvarno-brisanje-studenta" method="POST" action="/student-graph/?forma=brisi-studenta">
+    {% csrf_token %}
+    <input type="hidden" id="hidden_ime_studenta_za_brisanje" name="ime_studenta_za_brisanje">
+    <input type="hidden" id="hidden_prezime_studenta_za_brisanje" name="prezime_studenta_za_brisanje">
+    <input type="hidden" id="hidden_naslov_rada_studenta_za_brisanje" name="naslov_rada_studenta_za_brisanje">
+</form>
+<script src="{% static 'js/brisanje_studenta.js' %}"></script>
+{% elif prikazi_poruku_za_pretragu_brisanja_studenta %}
+<p style="text-align:center; color:red; margin-top:15px;">Нема студената са унетим именом и презименом.</p>
+{% endif %}
+
+{% if lista_profesora_za_brisanje %}
+<h2 style="text-align:center;" class="student-graph-title">Изаберите професора којег желите да обришете</h2>
+<div class="table-container">
+    <table class="custom-table" id="tabela-profesora-za-brisanje">
+        <thead>
+            <tr>
+                <th>Редни број</th>
+                <th>Име</th>
+                <th>Презиме</th>
+                <th>Институција</th>
+                <th>Акција</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for profesor in lista_profesora_za_brisanje %}
+            <tr data-ime="{{ profesor.ime }}" data-prezime="{{ profesor.prezime }}" data-institucija="{{ profesor.institucija }}">
+                <td>{{ forloop.counter }}</td>
+                <td>{{ profesor.ime }}</td>
+                <td>{{ profesor.prezime }}</td>
+                <td>{{ profesor.institucija }}</td>
+                <td><button type="button" class="btn-izbrisi-profesora">Избриши</button></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<form id="forma-za-stvarno-brisanje-profesora" method="POST" action="/student-graph/?forma=brisi-profesora">
+    {% csrf_token %}
+    <input type="hidden" id="hidden_ime_profesora_za_brisanje" name="ime_profesora_za_brisanje">
+    <input type="hidden" id="hidden_prezime_profesora_za_brisanje" name="prezime_profesora_za_brisanje">
+    <input type="hidden" id="hidden_institucija_profesora_za_brisanje" name="institucija_profesora_za_brisanje">
+</form>
+<script src="{% static 'js/brisanje_profesora.js' %}"></script>
+{% elif prikazi_poruku_za_pretragu_brisanja_profesora %}
+<p style="text-align:center; color:red; margin-top:15px;">Нема професора са унетим именом и презименом.</p>
+{% endif %}
+
+{% if lista_studenata_za_azuriranje %}
+<h2 style="text-align:center;" class="student-graph-title">Изаберите студента којег желите да ажурирате</h2>
+<div class="table-container">
+    <table class="custom-table" id="tabela-studenata-za-azuriranje">
+        <thead>
+            <tr>
+                <th>Редни број</th>
+                <th>Име</th>
+                <th>Презиме</th>
+                <th>Наслов</th>
+                <th>Смер</th>
+                <th>Тип тезе</th>
+                <th>Година одбране</th>
+                <th>Акција</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in lista_studenata_za_azuriranje %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ student.ime }}</td>
+                <td>{{ student.prezime }}</td>
+                <td>{{ student.naslov }}</td>
+                <td>{{ student.smer }}</td>
+                <td>{{ student.tip_teze }}</td>
+                <td>{{ student.godina_odbrane }}</td>
+                <td>
+                    <a class="table-action-btn"
+                       href="/student-graph/?forma=azuriraj-studenta&ime_studenta_za_azuriranje={{ student.ime|urlencode }}&prezime_studenta_za_azuriranje={{ student.prezime|urlencode }}&naslov_rada_studenta_za_azuriranje={{ student.naslov|urlencode }}">
+                        Ажурирај
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% elif prikazi_poruku_za_pretragu_azuriranja_studenta %}
+<p style="text-align:center; color:red; margin-top:15px;">Нема студената са унетим именом и презименом.</p>
+{% endif %}
+
+{% if podaci_stablo_student and postoji_student %}
+<h2 class="student-graph-title">Граф студента</h2>
+<div id="tree"></div>
+<div id="tooltip"></div>
+<script>
+const grafPodaci = {
+    "ime": "{{ podaci_stablo_student.ime_studenta }} {{ podaci_stablo_student.prezime_studenta }}, {{ podaci_stablo_student.smer_studenta }}",
+    "uloga": "student",
+    "grupa": 0,
+    "naslov_master_rada":             "{{ podaci_stablo_student.naslov_master_rada|default:'' }}",
+    "godina_odbrane_master_rada":     "{{ podaci_stablo_student.godina_odbrane_master_rada|default:'' }}",
+    "naslov_doktorske_teze":          "{{ podaci_stablo_student.naslov_doktorske_teze|default:'' }}",
+    "godina_odbrane_doktorske_teze":  "{{ podaci_stablo_student.godina_odbrane_doktorske_teze|default:'' }}",
+    "tip_teze":                       "{{ podaci_stablo_student.tip_teze|default:'' }}",
+    "children": [
+        {% if podaci_stablo_student.mentori %}
+            {% for mentor in podaci_stablo_student.mentori %}
+            {
+                "ime":         "{{ mentor.ime }} {{ mentor.prezime }}",
+                "veza":        "{% if podaci_stablo_student.tip_teze == 'Докторска теза' %}mentor_doktorska_teza{% else %}mentor_master_rad{% endif %}",
+                "uloga":       "{% if podaci_stablo_student.tip_teze == 'Докторска теза' %}mentor_doktorska_teza{% else %}mentor_master_rad{% endif %}",
+                "institucija": "{{ mentor.institucija|default:'' }}",
+                "grupa": 1
+            }{% if not loop.last or podaci_stablo_student.komisija %},{% endif %}
+            {% endfor %}
+        {% endif %}
+        {% if podaci_stablo_student.komisija %}
+            {% for profesor in podaci_stablo_student.komisija %}
+            {
+                "ime":         "{{ profesor.ime }} {{ profesor.prezime }}",
+                "veza":        "{% if podaci_stablo_student.tip_teze == 'Докторска теза' %}komisija_doktorska_teza{% else %}komisija_master_rad{% endif %}",
+               "uloga":       "{% if podaci_stablo_student.tip_teze == 'Докторска теза' %}komisija_doktorska_teza{% else %}komisija_master_rad{% endif %}",
+                "institucija": "{{ profesor.institucija|default:'' }}",
+                "grupa": 1
+            }{% if not loop.last %},{% endif %}
+            {% endfor %}
+        {% endif %}
+    ]
+
+};
+</script>
+<script src="{% static 'js/student_graph.js' %}"></script>
+
+{% elif prikazi_poruku and not ne_postoji_student %}
+<p style="font-size: 18px; color: #d9534f; font-weight: bold; text-align: center;">
+    Студент који одговара задатим критеријумима претраге није пронађен.
+</p>
+<script>
+alert("Студент који одговара задатим критеријумима претраге није пронађен.");
+</script>
+{% endif %}
+
+{% if ne_postoje_studenti_koji_zadovoljaju_kriterijume and prikazi_poruku_za_vise_studenata %}
+<p style="font-size: 18px; color: #d9534f; font-weight: bold; text-align: center;">
+    Не постоје студенти koji задовољавају задате критеријуме.
+</p>
+<script>alert("Не постоје студенти koji задовољавају задате критеријуме.")</script>
+{% endif %}
+
+{% if svi_studenti and svi_profesori %}
+<div id="tree"></div>
+<div id="tooltip" style="position:absolute; visibility:hidden; background:white; border:1px solid black; padding:5px; border-radius:5px; font-size:14px;"></div>
+<script>
+window.SVI_PODACI = { studenti: [], profesori: [], kolege: [] };
+{% for student in svi_studenti %}
+window.SVI_PODACI.studenti.push({
+    ime:            "{{ student.ime }} {{ student.prezime }}",
+    uloga:          "student",
+    smer:           "{{ student.smer }}",
+    naslov_rada:    "{{ student.naslov }}",
+    godina_odbrane: "{{ student.godina_odbrane }}",
+    tip_teze:       "{{ student.tip_teze }}",
+    grupa:          0
+});
+{% endfor %}
+{% for profesor in svi_profesori %}
+window.SVI_PODACI.profesori.push({
+    ime:        "{{ profesor.ime }} {{ profesor.prezime }}",
+    uloga:      "profesor",
+    institucija:"{{ profesor.institucija }}",
+    grupa:      1
+});
+{% endfor %}
+{% for veza in kolege %}
+window.SVI_PODACI.kolege.push({
+    od: "{{ veza.ime_profesora }} {{ veza.prezime_profesora }}",
+    ka: "{{ veza.ime_kolege }} {{ veza.prezime_kolege }}"
+});
+{% endfor %}
+</script>
+<script src="{% static 'js/svi_krug.js' %}"></script>
+{% endif %}
+
+{% if uspesno_dodat_student and prikazi_poruku_za_dodavanje_studenta %}
+<p style="font-size:18px; color:#28a745; font-weight:bold; text-align:center;">Студент је успешно додат у базу података</p>
+<script>alert("Студент је успешно додат у базу података.");</script>
+{% endif %}
+
+{% if neuspesno_dodat_student and prikazi_poruku_za_dodavanje_studenta %}
+<p style="font-size:18px; color:#d9534f; font-weight:bold; text-align:center;">
+    Додавање студента није успело. Студент са истим именом и насловом рада већ постоји у бази података.
+</p>
+<script>alert("Додавање студента није успело. Студент са истим именом и насловом рада већ постоји у бази података.");</script>
+{% endif %}
+
+{% if uspesno_dodat_profesor and prikazi_poruku_za_dodavanje_profesora %}
+<p style="font-size:18px; color:#28a745; font-weight:bold; text-align:center;">Професор је успешно додат у базу података.</p>
+<script>alert("Професор је успешно додат у базу података.");</script>
+{% endif %}
+
+{% if neuspesno_dodat_profesor and prikazi_poruku_za_dodavanje_profesora %}
+<p style="font-size:18px; color:#d9534f; font-weight:bold; text-align:center;">Додавање професора није успело. Професор већ постоји у бази података.</p>
+<script>alert("Додавање професора није успело. Професор већ постоји у бази података.");</script>
+{% endif %}
+
+{% if student_uspesno_izbrisan and prikazi_poruku_za_brisanje_studenta %}
+<p style="font-size:18px; color:#28a745; font-weight:bold; text-align:center;">Студент је успешно обрисан из базе података.</p>
+<script>alert("Студент је успешно обрисан из базе података.");</script>
+{% endif %}
+
+{% if student_neuspesno_izbrisan and prikazi_poruku_za_brisanje_studenta %}
+<p style="font-size:18px; color:#d9534f; font-weight:bold; text-align:center;">Брисање студента није успело jер студент не постоји у бази података.</p>
+<script>alert("Брисање студента није успело jер студент не постоји у бази података.");</script>
+{% endif %}
+
+{% if profesor_uspesno_izbrisan and prikazi_poruku_za_brisanje_profesora %}
+<p style="font-size:18px; color:#28a745; font-weight:bold; text-align:center;">Професор је успешно обрисан из базе података.</p>
+<script>alert("Професор је успешно обрисан из базе података.");</script>
+{% endif %}
+
+{% if profesor_neuspesno_izbrisan and prikazi_poruku_za_brisanje_profesora %}
+<p style="font-size:18px; color:#d9534f; font-weight:bold; text-align:center;">Брисање професора није успело jер професор не постоји у бази података.</p>
+<script>alert("Брисање професора није успело jер професор не постоји у бази података.");</script>
+{% endif %}
+
+{% if ne_postoje_profesori_na_zadatoj_instituciji and prikazi_poruku_da_ne_postoje_profesori_na_zadatoj_instituciji %}
+<p style="font-size:18px; color:#d9534f; font-weight:bold; text-align:center;">У бази података не постоје професори са изабране институције.</p>
+<script>alert("У бази података не постоје професори са изабране институције.");</script>
+{% endif %}
+
+{% if ne_postoji_profesor_sa_datim_imenom_i_prezimenom and prikazi_poruku_da_ne_postoji_profesor_sa_datim_imenom_i_prezimenom %}
+<p style="font-size:18px; color:#d9534f; font-weight:bold; text-align:center;">У бази података не постоји професор са датим именом и презименом.</p>
+<script>alert("У бази података не постоји професор са датим именом и презименом.");</script>
+{% endif %}
+
+{% if uspesno_azuriranje and prikazi_poruku_za_azuriranje %}
+<p style="font-size:18px; color:#28a745; font-weight:bold; text-align:center;">Информације о студенту су успешно ажуриране.</p>
+<script>alert("Информације о студенту су успешно ажуриране.");</script>
+{% endif %}
+
+{% if neuspesno_azuriranje and prikazi_poruku_za_azuriranje %}
+<p style="font-size:18px; color:#d9534f; font-weight:bold; text-align:center;">Информације о студенту нису ажуриране, студент не постоји у бази података.</p>
+<script>alert("Информације о студенту нису ажуриране, студент не постоји у бази података.");</script>
+{% endif %}
+
+{% if podaci_stablo_profesor %}
+<h2 class="student-graph-title">Граф професора</h2>
+<div id="tree"></div>
+<div id="tooltip" style="position:absolute; visibility:hidden; background:white; border:1px solid black; padding:5px; border-radius:5px; font-size:14px;"></div>
+<script>
+const grafPodaciProfesor = { "cvorovi": [], "veze": [] };
+const parametriUrl = new URLSearchParams(window.location.search);
+const ime     = parametriUrl.get('ime_profesora');
+const prezime = parametriUrl.get('prezime_profesora');
+const mentorstvo   = parametriUrl.has('mentorstvo');
+const clanKomisije = parametriUrl.has('clan_komisije');
+const rekurzivno   = parametriUrl.has('rekurzivno');
+
+if (ime && prezime) {
+    grafPodaciProfesor.cvorovi.push({ id: ime + " " + prezime,  grupa: 0, uloga: "profesor" });
+    let studentiSet = new Set();
+
+    {% if podaci_stablo_profesor %}
+    if (mentorstvo) {
+        {% for student in podaci_stablo_profesor.mentorstvo_master_rad %}
+        var sid = "{{ student.ime|escapejs }} {{ student.prezime|escapejs }}";
+        if (!studentiSet.has(sid)) {
+            studentiSet.add(sid);
+            grafPodaciProfesor.cvorovi.push({ id: sid, grupa: 1, uloga: "master_student", naslov_master_rad: "{{ student.naslov|escapejs }}", smer: "{{ student.smer|escapejs }}", godina_odbrane_master_rad: "{{ student.godina_odbrane }}" });
+        }
+        grafPodaciProfesor.veze.push({ source: ime + " " + prezime, target: sid, tip: "master" });
+        {% endfor %}
+
+        {% for student in podaci_stablo_profesor.mentorstvo_doktorska_teza %}
+        var sid = "{{ student.ime|escapejs }} {{ student.prezime|escapejs }}";
+        if (!studentiSet.has(sid)) {
+            studentiSet.add(sid);
+            grafPodaciProfesor.cvorovi.push({ id: sid, grupa: 1, uloga: "doktorski_student", naslov_doktorske_teze: "{{ student.naslov|escapejs }}", smer: "{{ student.smer|escapejs }}", godina_odbrane_doktorske_teze: "{{ student.godina_odbrane }}" });
+        }
+        grafPodaciProfesor.veze.push({ source: ime + " " + prezime, target: sid, tip: "doktorska" });
+        {% endfor %}
+    }
+
+    if (clanKomisije) {
+        {% for student in podaci_stablo_profesor.clanovi_komisije_master_rad %}
+        var sid = "{{ student.ime|escapejs }} {{ student.prezime|escapejs }}";
+        if (!studentiSet.has(sid)) {
+            studentiSet.add(sid);
+            grafPodaciProfesor.cvorovi.push({ id: sid, grupa: 2, uloga: "master_student", naslov_master_rad: "{{ student.naslov|escapejs }}", smer: "{{ student.smer|escapejs }}", godina_odbrane_master_rad: "{{ student.godina_odbrane }}" });
+        }
+        grafPodaciProfesor.veze.push({ source: ime + " " + prezime, target: sid, tip: "master" });
+        {% endfor %}
+
+        {% for student in podaci_stablo_profesor.clanovi_komisije_doktorske_teze %}
+        var sid = "{{ student.ime|escapejs }} {{ student.prezime|escapejs }}";
+        if (!studentiSet.has(sid)) {
+            studentiSet.add(sid);
+            grafPodaciProfesor.cvorovi.push({ id: sid, grupa: 2, uloga: "doktorski_student", naslov_doktorske_teze: "{{ student.naslov|escapejs }}", smer: "{{ student.smer|escapejs }}", godina_odbrane_doktorske_teze: "{{ student.godina_odbrane }}" });
+        }
+        grafPodaciProfesor.veze.push({ source: ime + " " + prezime, target: sid, tip: "doktorska" });
+        {% endfor %}
+
+        if (rekurzivno) {
+            {% for profesor, studenti in podaci_stablo_profesor.profesor_studenti_map_clanovi_komisije.items %}
+            {% for student in studenti %}
+            var sid = "{{ student.ime|escapejs }} {{ student.prezime|escapejs }}";
+            if (!studentiSet.has(sid)) {
+                studentiSet.add(sid);
+                grafPodaciProfesor.cvorovi.push({ id: sid, grupa: 5, uloga: "rekurzivni_student", naslov: "{{ student.naslov|escapejs }}", smer: "{{ student.smer|escapejs }}", godina_odbrane: "{{ student.godina_odbrane }}", tip_teze: "{{ student.tip_teze|escapejs }}" });
+            }
+            grafPodaciProfesor.veze.push({ source: "{{ profesor.ime|escapejs }} {{ profesor.prezime|escapejs }}", target: sid, tip: "student_mentor" });
+            {% endfor %}
+            {% endfor %}
+        }
+    }
+    {% endif %}
+}
+</script>
+<script src="{% static 'js/profesor_graph.js' %}"></script>
+{% endif %}
+
+{% if studentski_graf %}
+<div id="tree"></div>
+<div id="tooltip" style="position:absolute; visibility:hidden; background-color:white; border:1px solid black; padding:5px; border-radius:5px; font-size:14px;"></div>
+<script>
+window.STUDENTSKI_GRAF_PODACI = { cvorovi: [], veze: [] };
+{% for student in studentski_graf %}
+window.STUDENTSKI_GRAF_PODACI.cvorovi.push({ id: "{{ student.ime }} {{ student.prezime }}||{{ student.naslov }}", ime: "{{ student.ime }} {{ student.prezime }}", grupa: 0, uloga: "student", smer: "{{ student.smer }}", naslov_rada: "{{ student.naslov }}", godina_odbrane: "{{ student.godina_odbrane }}", tip_teze: "{{ student.tip_teze }}" });
+window.STUDENTSKI_GRAF_PODACI.cvorovi.push({ id: "{{ student.mentor.ime }} {{ student.mentor.prezime }}", ime: "{{ student.mentor.ime }} {{ student.mentor.prezime }}", grupa: 1, uloga: "mentor", institucija: "{{ student.mentor.institucija }}" });
+window.STUDENTSKI_GRAF_PODACI.veze.push({ source: "{{ student.mentor.ime }} {{ student.mentor.prezime }}", target: "{{ student.ime }} {{ student.prezime }}||{{ student.naslov }}" });
+{% for clan in student.komisija %}
+window.STUDENTSKI_GRAF_PODACI.cvorovi.push({ id: "{{ clan.ime }} {{ clan.prezime }}", ime: "{{ clan.ime }} {{ clan.prezime }}", grupa: 2, uloga: "clan_komisije", institucija: "{{ student.mentor.institucija }}" });
+window.STUDENTSKI_GRAF_PODACI.veze.push({ source: "{{ clan.ime }} {{ clan.prezime }}", target: "{{ student.ime }} {{ student.prezime }}||{{ student.naslov }}" });
+{% endfor %}
+{% endfor %}
+</script>
+<script src="{% static 'js/studentski_graf.js' %}"></script>
+{% endif %}
+
+{% if studentski_krug %}
+<div id="tree"></div>
+<div id="tooltip" style="position:absolute; visibility:hidden; background-color:white; border:1px solid black; padding:5px; border-radius:5px; font-size:14px;"></div>
+<script>
+window.STUDENTSKI_KRUG_PODACI = { studenti: [], profesori: [], veze: [] };
+{% for student in studentski_krug %}
+window.STUDENTSKI_KRUG_PODACI.studenti.push({ ime: "{{ student.ime }} {{ student.prezime }}", uloga: "student", smer: "{{ student.smer }}", naslov_rada: "{{ student.naslov }}", godina_odbrane: "{{ student.godina_odbrane }}", tip_teze: "{{ student.tip_teze }}", grupa: 0 });
+window.STUDENTSKI_KRUG_PODACI.profesori.push({ ime: "{{ student.mentor.ime }} {{ student.mentor.prezime }}", uloga: "mentor", institucija: "{{ student.mentor.institucija }}", grupa: 1 });
+window.STUDENTSKI_KRUG_PODACI.veze.push({ source: "{{ student.ime }} {{ student.prezime }}", naslov_rada: "{{ student.naslov }}", target: "{{ student.mentor.ime }} {{ student.mentor.prezime }}", type: "mentor" });
+{% for profesor in student.komisija %}
+window.STUDENTSKI_KRUG_PODACI.profesori.push({ ime: "{{ profesor.ime }} {{ profesor.prezime }}", uloga: "profesor", institucija: "{{ profesor.institucija }}", grupa: 1 });
+window.STUDENTSKI_KRUG_PODACI.veze.push({ source: "{{ student.ime }} {{ student.prezime }}", naslov_rada: "{{ student.naslov }}", target: "{{ profesor.ime }} {{ profesor.prezime }}", type: "clan_komisije" });
+{% endfor %}
+{% endfor %}
+</script>
+<script src="{% static 'js/studentski_krug.js' %}"></script>
+{% endif %}
+</body>
+</html>

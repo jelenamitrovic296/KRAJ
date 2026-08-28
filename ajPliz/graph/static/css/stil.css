@@ -1,0 +1,708 @@
+/* RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* BODY */
+body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #eef2ff, #f8fafc);
+    min-height: 100vh;
+    color: #1f2937;
+}
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+/* GLAVNI KONTEJNER */
+.app-wrapper {
+    max-width: 1200px;
+    margin: 80px auto;
+    padding: 60px;
+    background: white;
+    border-radius: 28px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.12);
+    position: relative;
+}
+
+/* PRIJAVA / ODJAVA */
+.auth-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 14px;
+    background: #f0f5ff;
+    border: 1px solid #dbe4ff;
+    border-radius: 10px;
+    padding: 10px 20px;
+    margin-bottom: 24px;
+    text-align: center;
+}
+.auth-text {
+    color: #475569;
+}
+.auth-link {
+    display: inline-block;
+    padding: 8px 18px;
+    background: #1e3a8a;
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    white-space: nowrap;
+    transition: background 0.2s ease;
+}
+.auth-link:hover {
+    background: #2563eb;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+/* HERO */
+.hero {
+    text-align: center;
+    margin-bottom: 60px;
+}
+.hero h1 {
+    font-size: 40px;
+    font-weight: 800;
+    color: #1e3a8a;
+    margin-bottom: 15px;
+}
+.hero p {
+    font-size: 18px;
+    color: #64748b;
+}
+
+/* KARTICE */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 35px;
+}
+
+/* JEDNA KARTICA */
+.card {
+    background: linear-gradient(145deg, #ffffff, #f1f5f9);
+    border-radius: 22px;
+    padding: 35px;
+    cursor: pointer;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+    transition: all 0.35s ease;
+    position: relative;
+    overflow: hidden;
+}
+.card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 6px;
+    background: linear-gradient(to right, #3b82f6, #6366f1);
+}
+.card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 35px 70px rgba(0,0,0,0.18);
+}
+.card i {
+    font-size: 46px;
+    color: #3b82f6;
+    margin-bottom: 20px;
+}
+.card h3 {
+    font-size: 24px;
+    margin-bottom: 12px;
+    color: #1f2937;
+}
+.card p {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #6b7280;
+}
+
+/* FORMA WRAPPER */
+.form-wrapper {
+    display: none;
+    margin-top: 40px;
+    width: 100%;
+}
+
+/* BACK DUGME */
+.back-btn {
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #3b82f6;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+.back-btn i {
+    margin-right: 8px;
+}
+
+/* SECTIONS */
+.form-sections {
+    display: flex;                 /* raspored levo-desno */
+    flex-wrap: wrap;               /* prelazak u novi red ako nema mesta */
+    gap: 5px;                     /* razmak između sekcija */
+    justify-content: center;       /* centriranje sekcija u sredini */
+    align-items: flex-start;       /* poravnanje vrha sekcija */
+    margin-top: 20px;
+}
+
+.form-section {
+    display: block;
+    margin: 40px auto;
+    padding: 30px;
+    width: 100%;
+    max-width: 600px;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+    text-align: left;
+    transition: all 0.3s ease;
+}
+.form-section h2 {
+    margin-bottom: 20px;
+    color: #1e40af;
+    font-size: 22px;
+    font-weight: 700;
+    border-bottom: 2px solid #3b82f6;
+    padding-bottom: 6px;
+}
+
+/* INPUTI */
+.form-section input,
+.form-section select {
+    width: 100%;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    border: 1px solid #cbd5e1;
+    font-size: 15px;
+    background: #f9fafb;
+    transition: all 0.25s ease;
+    color: gray; 
+}
+.form-section input:focus,
+.form-section select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+    outline: none;
+}
+
+/* RADIO */
+.radio-group {
+    display: flex;
+    gap: 15px;
+    margin: 15px 0;
+}
+
+/* BUTTON */
+/* MODERNI DUGMIĆI */
+/* MODERNI ŠIROKI DUGMIĆI */
+.form-section button:not(.back-arrow) {
+    display: block;             /* zauzima celokupnu širinu */
+    width: 100%;                /* isto kao širina forme */
+    background: linear-gradient(135deg, #3b82f6, #6366f1);
+    color: white;
+    border: none;
+    padding: 16px 0;            /* veća visina dugmeta */
+    margin-bottom: 20px;        /* više razmaka između dugmića */
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+    transition: all 0.35s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.form-section button::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 300%;
+    height: 300%;
+    background: rgba(255,255,255,0.2);
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.5s ease;
+    border-radius: 50%;
+}
+
+.form-section button:hover::after {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.form-section button:hover {
+    background: linear-gradient(135deg, #2563eb, #4f46e5);
+    box-shadow: 0 12px 30px rgba(59, 130, 246, 0.4);
+    transform: translateY(-3px);
+}
+
+
+/* PORUKE */
+#poruka-greske,
+#poruka-greske-vise-studenata {
+    color: #ef4444;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+/* =================== TABELA =================== */
+.table-container {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+    overflow-x: auto;
+}
+.custom-table {
+    width: 95%; /* Povećano sa 90% da bi tekst imao više mesta */
+    border-collapse: collapse;
+    margin: 0 auto;
+    font-size: 18px; /* Povećano sa 15px za bolju čitljivost */
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #ffffff;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+}
+.custom-table thead tr {
+    font-size: 16px; /* Naslovi kolona mogu biti mrvicu manji od sadržaja, ali jasni */
+    background: #f3f4f6;
+    color: #1e3a8a;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+.custom-table th,
+.custom-table td {
+    padding: 16px 20px; /* Povećan padding da ćelije ne bi bile "zgnječene" zbog većeg teksta */
+    text-align: center;
+    border-bottom: 1px solid #e5e7eb;
+}
+.custom-table tbody tr:nth-of-type(even) {
+    background-color: #f9fafb;
+}
+.custom-table tbody tr:hover {
+    background-color: #e0f2fe;
+}
+.custom-table button:hover {
+    background-color: #2563eb;
+    color: white;
+}
+
+/* =================== GRAFOVI / DRVO =================== */
+#tree {
+    margin: 50px auto;
+    padding: 30px;
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+    overflow: auto;
+    max-width: 95%;
+}
+ol {
+    text-align: left;
+    padding-left: 25px;
+}
+ol li {
+    margin: 12px 0;
+    line-height: 1.8;
+    font-size: 16px;
+    color: #1f2937;
+}
+
+/* SVG */
+svg {
+    display: block;
+    margin: 0 auto;
+}
+.node text {
+    font: 16px 'Segoe UI', sans-serif;
+    fill: #1e3a8a;
+    font-weight: 600;
+}
+.link {
+    fill: none;
+    stroke-width: 3px;
+    stroke: #93c5fd;
+}
+.highlight {
+    stroke: #f59e0b;
+    stroke-width: 4px;
+}
+
+/* =================== RESPONSIVE =================== */
+@media (max-width: 900px) {
+    .form-sections {
+        flex-direction: column;
+    }
+    .form-section {
+        width: 100%;
+    }
+    .cards {
+        grid-template-columns: 1fr;
+    }
+    button {
+        justify-content: center;
+    }
+}
+
+/* ================= TIPOVI TEZE I VEZE ================= */
+
+/* Default link */
+.link {
+    stroke: gray !important;
+    fill: none;
+    stroke-width: 3px;
+}
+
+/* Master rad */
+.link[stroke="orange"] {
+    stroke: orange !important;
+}
+
+/* Doktorska teza */
+.link[stroke="purple"] {
+    stroke: purple !important;
+}
+.back-arrow {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    background: linear-gradient(135deg, #1e90ff, #3aa0ff);
+    color: white;
+
+    border: none;
+    border-radius: 30px;
+
+    padding: 12px 18px;
+    font-size: 16px;
+    font-weight: 600;
+
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(30, 144, 255, 0.35);
+
+    transition: all 0.25s ease;
+    z-index: 1000;
+}
+
+.back-arrow i {
+    font-size: 18px;
+}
+
+.back-arrow:hover {
+    transform: translateX(-5px);
+    box-shadow: 0 12px 28px rgba(30, 144, 255, 0.5);
+    background: linear-gradient(135deg, #187bcd, #1e90ff);
+}
+
+.back-arrow:active {
+    transform: scale(0.95);
+}
+.back-arrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    color: #3b82f6;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: 20px;
+    width: auto;
+}
+
+.back-arrow:hover {
+    text-decoration: underline;
+}
+/* =================== NASLOVI TABELA =================== */
+.table-title {
+    text-align: center;
+    font-size: 22px;
+    font-weight: 800;
+    color: #1e3a8a;
+    margin: 40px 0 20px;
+    position: relative;
+}
+
+.table-title::after {
+    content: "";
+    display: block;
+    width: 80px;
+    height: 4px;
+    margin: 10px auto 0;
+    background: linear-gradient(135deg, #3b82f6, #6366f1);
+    border-radius: 2px;
+}
+.student-graph-title {
+    text-align: center;           
+    color: #4a90e2;               
+    font-family: 'Segoe UI', Tahoma, sans-serif; 
+    font-weight: 600;             
+    margin: 20px 0;               
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2); 
+    transition: color 0.3s;       
+}
+
+.student-graph-title:hover {
+    color: #2c6fd1;               
+}
+
+
+
+/* =================== DUGMIĆI U TABELAMA =================== */
+.custom-table button,
+.custom-table a.table-action-btn {
+    background: linear-gradient(135deg, #3b82f6, #6366f1);
+    color: #ffffff;
+    border: none;
+    border-radius: 14px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 6px 14px rgba(59, 130, 246, 0.35);
+    transition: all 0.25s ease;
+    display: inline-block;
+    text-decoration: none;
+}
+
+.custom-table button:hover,
+.custom-table a.table-action-btn:hover {
+    background: linear-gradient(135deg, #2563eb, #4f46e5);
+    box-shadow: 0 10px 22px rgba(59, 130, 246, 0.45);
+    transform: translateY(-2px);
+}
+
+.custom-table button:active {
+    transform: scale(0.95);
+}
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-card {
+  background: #fff;
+  padding: 24px;
+  border-radius: 12px;
+  width: 320px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.modal-card h3 {
+  margin-bottom: 12px;
+}
+
+.modal-card p {
+  margin-bottom: 20px;
+  color: #555;
+}
+
+.modal-card button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #4f46e5;
+  color: white;
+  cursor: pointer;
+}
+
+.modal-card button:hover {
+  background: #4338ca;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.student-graph-title {
+    text-align: center;           
+    color: #4a90e2;               
+    font-family: 'Segoe UI', Tahoma, sans-serif; 
+    font-weight: 600;             
+    margin: 20px 0;               
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2); 
+    transition: color 0.3s;       
+}
+
+.student-graph-title:hover {
+    color: #2c6fd1;               
+}
+#tooltip {
+    position: absolute;
+    visibility: hidden;
+    background: white;
+    border: 1px solid #999;
+    padding: 6px;
+    border-radius: 5px;
+    font-size: 12px;
+    pointer-events: none;   
+
+.form-title {
+    color: #1a3a5c;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #2980b9;
+}
+
+.form-group-card {
+    background: #ffffff;
+    border: 1px solid #d0e4f5;
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    border-left: 4px solid #2980b9;
+}
+
+.form-group-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a3a5c;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e8f1fa;
+}
+
+.form-group-icon {
+    font-size: 16px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 12px;
+}
+
+.form-field:last-child {
+    margin-bottom: 0;
+}
+
+.form-field label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #34495e;
+}
+
+.field-hint {
+    font-weight: 400;
+    color: #7f8c8d;
+    font-size: 12px;
+}
+
+.form-field input,
+.form-field select,
+.clan-azurirane-komisije-select {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid #b8d4ee;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #2c3e50;
+    background-color: #f7fbff;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.clan-azurirane-komisije-select:focus {
+    outline: none;
+    border-color: #2980b9;
+    box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.15);
+    background-color: #fff;
+}
+
+#clanovi-azurirane-komisije {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.btn-add-member {
+    background: none;
+    border: 1px dashed #2980b9;
+    color: #2980b9;
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.2s;
+}
+
+.btn-add-member:hover {
+    background: #eaf4fd;
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 12px;
+    background: #2980b9;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s;
+}
+
+.btn-submit:hover {
+    background: #1a6fa0;
+}

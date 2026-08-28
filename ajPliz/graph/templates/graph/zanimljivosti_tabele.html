@@ -1,0 +1,77 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'graph/style.css' %}">
+<button type="button" class="back-arrow" onclick="window.location.href='/student-graph'">
+    <i class="fas fa-arrow-left"></i>
+    Назад на мени
+</button>
+{% if top_10_mentora %}
+    <h2 class="table-title">Топ 10 професора са највише менторстава на МАТФ-у</h2>
+    <div class="table-container">
+    <table class="custom-table">
+        <thead>
+            <tr>
+                <th>Име</th>
+                <th>Презиме</th>
+                <th>Институција</th>
+                <th>Број менторстава</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for mentor in top_10_mentora %}
+                <tr>
+                    <td>{{ mentor.0 }}</td>
+                    <td>{{ mentor.1 }}</td>
+                    <td>{{ mentor.2 }}</td>
+                    <td>{{ mentor.3 }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+{% endif %}
+<br><br>
+{% if top_10_clanova_komisije %}
+    <h2 class="table-title">Топ 10 професора са највише чланстава у комисијама на МАТФ-у</h2>
+    <table class="custom-table">
+        <thead>
+          <tr>
+              <th>Име</th>
+              <th>Презиме</th>
+              <th>Институција</th>
+              <th>Број чланстава у комисији</th>
+          </tr>
+        </thead>
+        <tbody>
+            {% for clan in top_10_clanova_komisije %}
+                <tr>
+                    <td>{{ clan.0 }}</td>
+                    <td>{{ clan.1 }}</td>
+                    <td>{{ clan.2 }}</td>
+                    <td>{{ clan.3 }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+<br><br>
+{% if profesori_koji_nisu_sa_matematickog %}
+    <h2 class="table-title"> Чланови комисије који нису са Математичког факултета </h2>
+    <table class="custom-table">
+        <thead>
+          <tr>
+              <th>Име</th>
+              <th>Презиме</th>
+              <th>Институција</th>
+          </tr>
+        </thead>
+        <tbody>
+            {% for clan in profesori_koji_nisu_sa_matematickog %}
+                <tr>
+                    <td>{{ clan.0 }}</td>
+                    <td>{{ clan.1 }}</td>
+                    <td>{{ clan.2 }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
