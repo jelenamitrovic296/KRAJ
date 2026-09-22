@@ -20,16 +20,13 @@ from passlib.context import CryptContext
 from neo4j import GraphDatabase
 import json
 
-# Neo4j konekcija
 uri = "bolt://localhost:7687"
 neo4j_username = "neo4j"
 neo4j_password = "JelenaMasterRad"
 driver = GraphDatabase.driver(uri, auth=(neo4j_username, neo4j_password))
 
-# Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Privremeno čuvanje ulogovanih korisnika (u memoriji)
 logged_users = {}
 
 
@@ -57,7 +54,6 @@ def verify_user(username, password):
     return None
 
 def check_permission(username: str, required_roles: list):
-    """Proverava da li korisnik ima dozvolu"""
     if not username or username not in logged_users:
         return False
     
@@ -67,7 +63,6 @@ def check_permission(username: str, required_roles: list):
     return True
 
 def get_current_user(request):
-    """Vraća trenutno ulogovanog korisnika iz sesije"""
     if request.method == 'GET':
         username = request.session.get('username')
         role = request.session.get('role')
@@ -92,7 +87,7 @@ def get_current_user(request):
         'message': 'Koristi GET metod'
     }, status=405)
 
-@csrf_exempt  # MORA biti iznad funkcije!
+@csrf_exempt 
 def login_view(request):
     if request.method == 'GET':
         return render(request, 'graph/login.html')
@@ -111,7 +106,6 @@ def login_view(request):
                     'message': 'Pogrešno korisničko ime ili lozinka'
                 }, status=401)
             
-            # Чување у сесију
             request.session['username'] = user["username"]
             request.session['role'] = user["role"]
             
@@ -176,7 +170,6 @@ def login_view(request):
     }, status=405)
 
 def logout_view(request):
-    """Odjavljuje korisnika (briše sesiju) i vraća ga na /student-graph/ kao gosta."""
     request.session.flush()
     return redirect('/student-graph/')
 
@@ -273,7 +266,6 @@ def podaci_o_studentu_graf(tx, ime, prezime,naslov):
 
     profesori_mapa = {}
 
-    # Mentori
     uloge_mentora = {
         "mentor_master": "mentor_master_rad",
         "mentor_doktorska": "mentor_doktorska_teza"
@@ -291,7 +283,6 @@ def podaci_o_studentu_graf(tx, ime, prezime,naslov):
                 }
             profesori_mapa[ident]["uloge"].add(uloga)
 
-    # Komisija
     uloge_komisije = {
         "komisija_master": "komisija_master_rad",
         "komisija_doktorska": "komisija_doktorska_teza"
@@ -309,7 +300,6 @@ def podaci_o_studentu_graf(tx, ime, prezime,naslov):
                 }
             profesori_mapa[ident]["uloge"].add(uloga)
 
-    # Razdvajamo mentore i komisiju za šablon
     mentori = []
     komisija = []
     for ident, podaci in profesori_mapa.items():
@@ -325,8 +315,7 @@ def podaci_o_studentu_graf(tx, ime, prezime,naslov):
         else:
             komisija.append(osoba)
 
-    print("MENTORI:", mentori)
-    print("KOMISIJA:", komisija)
+
 
     return {
         "ime_studenta": s["ime"],
@@ -472,10 +461,8 @@ def statistika(tx,ime_profesora, prezime_profesora):
     RETURN 'Члан комисије докторска теза' AS tip, COUNT(DISTINCT student) AS broj_studenta
     """
 
-    # Pozivaj Cypher upit sa parametrima
     result = tx.run(cypher_query, ime_profesora=ime_profesora, prezime_profesora=prezime_profesora)
     
-    # <Vraćanje rezultata
     return [rezultat for rezultat in result]
 
 def azurirajInformacijeOStudentu(
@@ -484,29 +471,23 @@ def azurirajInformacijeOStudentu(
     naslov, mentor_id, clanovi_komisije_ids
 ):
     with driver.session() as session:
-        # Sve radimo u jednom prolazu kroz bazu
         glavni_upit = (
-            # 1. Pronađi tačnog studenta pomoću starog naslova
             "MATCH (s:Student {ime: $ime, prezime: $prezime, naslov: $stari_naslov}) "
             
-            # 2. Ažuriraj njegove osnovne podatke (uključujući i naslov)
             "SET s.smer = $smer, "
             "    s.tip_teze = $tip_teze, "
             "    s.godina_odbrane = $godina_odbrane, "
             "    s.naslov = $novi_naslov "
             
-            # 3. Obriši stare veze za mentora i komisiju (samo za tog studenta)
             "WITH s "
             "OPTIONAL MATCH (s)-[r1:MENTOR]->(:Profesor) "
             "OPTIONAL MATCH (s)-[r2:CLANOVI_KOMISIJE]->(:Profesor) "
             "DELETE r1, r2 "
             
-            # 4. Poveži novog mentora
             "WITH s "
             "MATCH (m:Profesor {id: $mentor_id}) "
             "MERGE (s)-[:MENTOR]->(m) "
             
-            # 5. Vrati studenta da potvrdimo uspeh
             "RETURN s"
         )
 
@@ -526,7 +507,6 @@ def azurirajInformacijeOStudentu(
         if not student_postoji:
             return False
 
-        # 6. Poseban upit za članove komisije (jer ih ima više, pa koristimo UNWIND)
         upit_komisija = (
             "MATCH (s:Student {ime: $ime, prezime: $prezime, naslov: $naslov}) "
             "UNWIND $ids as id_clana "
@@ -790,7 +770,6 @@ def  student_graph(request):
     if dodati_idijevi ==  False:
      dodaj_uuid_profesorima()
 
-    # ---- Ako korisnik nije ulogovan, automatski ga tretiraj kao gosta ----
     if not request.session.get('username'):
         request.session['username'] = 'gost'
         request.session['role'] = 'guest'
@@ -881,7 +860,6 @@ def  student_graph(request):
     naslov_studenta_za_azuriranje = request.POST.get("naslov_rada_studenta_za_azuriranje");
     naziv_institucije = request.GET.get("naziv_institucije");
 
-    # ---- Pretraga studenata za ažuriranje (samo ime i prezime) ----
     ime_pretraga_azuriranje_student = request.GET.get("ime_pretraga_azuriranje_student")
     prezime_pretraga_azuriranje_student = request.GET.get("prezime_pretraga_azuriranje_student")
 
@@ -904,8 +882,7 @@ def  student_graph(request):
         if len(sadrzaj["lista_studenata_za_azuriranje"]) == 0:
             sadrzaj["prikazi_poruku_za_pretragu_azuriranja_studenta"] = True
 
-    # ---- Predpopunjavanje identifikacionih polja u formi za ažuriranje ----
-    # (nakon klika na "Ажурирај" u tabeli, ili nakon neuspešnog POST pokušaja)
+   
     sadrzaj["ime_studenta_za_azuriranje"] = ime_studenta_za_azuriranje or request.GET.get("ime_studenta_za_azuriranje", "")
     sadrzaj["prezime_studenta_za_azuriranje"] = prezime_studenta_za_azuriranje or request.GET.get("prezime_studenta_za_azuriranje", "")
     sadrzaj["naslov_rada_studenta_za_azuriranje"] = naslov_studenta_za_azuriranje or request.GET.get("naslov_rada_studenta_za_azuriranje", "")
@@ -944,7 +921,7 @@ def  student_graph(request):
      else:
         sadrzaj["neuspesno_azuriranje"] = True
         sadrzaj["prikazi_poruku_za_azuriranje"] = True
-    # ---- Pretraga profesora za brisanje (samo ime i prezime, bez institucije) ----
+
     ime_profesora_za_pretragu_brisanja = request.GET.get("ime_profesora_za_brisanje")
     prezime_profesora_za_pretragu_brisanja = request.GET.get("prezime_profesora_za_brisanje")
 
@@ -969,7 +946,6 @@ def  student_graph(request):
             sadrzaj["profesor_neuspesno_izbrisan"] = True;
             sadrzaj["prikazi_poruku_za_brisanje_profesora"] = True;
         
-    # ---- Pretraga studenata za brisanje (samo ime i prezime, bez naslova) ----
     ime_studenta_za_pretragu_brisanja = request.GET.get("ime_studenta_za_brisanje")
     prezime_studenta_za_pretragu_brisanja = request.GET.get("prezime_studenta_za_brisanje")
 
@@ -1080,9 +1056,7 @@ def  student_graph(request):
                 sadrzaj["ne_postoji_student"] = p;
                 sadrzaj["prikazi_poruku"] = True;
                 
-            #print(ime_studenta,prezime_studenta)
             sadrzaj["podaci_stablo_student"] = session.read_transaction(podaci_o_studentu_graf, ime_studenta, prezime_studenta,naslov_jednog)
-            #print(sadrzaj["podaci_stablo_student"]);
 
     smer = request.GET.get("smer", "").strip()
     naslov = request.GET.get("naslov","").strip();
