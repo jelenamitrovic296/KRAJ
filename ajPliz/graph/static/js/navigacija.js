@@ -1,13 +1,9 @@
-// navigacija.js — event listeneri, prikaz formi, učitavanje korisnika
 
-// Server je ulogu već znao u trenutku renderovanja (iz sesije), pa je ubacio kao
-// window.KORISNICKA_ULOGA — koristimo to odmah, sinhrono, umesto da čekamo fetch
-// i time izazivamo bljesak admin ikonica.
 let user = window.KORISNICKA_ULOGA ? { role: window.KORISNICKA_ULOGA } : null;
 
 async function loadCurrentUser() {
     try {
-        console.log('🔍 Učitavam podatke o korisniku...');
+        console.log('Učitavam podatke o korisniku...');
         const response = await fetch('/current-user/', {
             method: 'GET',
             credentials: 'same-origin'
@@ -17,16 +13,15 @@ async function loadCurrentUser() {
         console.log('Response data:', data);
         if (data.success) {
             user = data.user;
-            console.log('✅ Uspešno učitan korisnik:', user);
+            console.log('Uspešno učitan korisnik:', user);
         } else {
-            console.log('❌ Korisnik nije ulogovan:', data.message);
+            console.log('Korisnik nije ulogovan:', data.message);
         }
     } catch (error) {
-        console.error('💥 Greška pri učitavanju korisnika:', error);
+        console.error('Greška pri učitavanju korisnika:', error);
     }
 }
 
-// Dinamičko pravljenje select-a za profesore — koristi globalnu listu `profesori`
 function napraviSelectZaProfesora(name, id, placeholderText) {
     const select = document.createElement('select');
     select.name = name;
@@ -48,12 +43,10 @@ function napraviSelectZaProfesora(name, id, placeholderText) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-    // ---- Auto-otvori formu na osnovu ?forma= parametra (čist URL) — SINHRONO, ----
-    // ---- ne čeka se mrežni poziv za korisnika, da meni ne bi bljesnuo pre skrivanja. ----
+
     const urlParams = new URLSearchParams(window.location.search);
     const formaParam = urlParams.get('forma');
 
-    // ---- DOM elementi ----
     const dugmeZaPretraguStudenta            = document.getElementById('pretraziStudenta');
     const dugmeZaPretraguProfesora           = document.getElementById('pretraziProfesora');
     const studentskaForma                    = document.getElementById('studentska-forma');
@@ -79,7 +72,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const modal                              = document.getElementById('adminModal');
     const closeModalBtn                      = document.getElementById('closeModal');
 
-    // Sakrij sve forme na startu
     [
         studentskaForma,
         profesorskaForma,
@@ -91,7 +83,6 @@ document.addEventListener("DOMContentLoaded", function () {
         formaPretraziAzuriratiStudenta
     ].forEach(f => { if (f) f.style.display = "none"; });
 
-    // ---- Prikaz forme ----
     function prikaziFormu(formaZaPrikaz) {
         [
             studentskaForma, profesorskaForma,
@@ -107,15 +98,12 @@ document.addEventListener("DOMContentLoaded", function () {
         if (meni) meni.style.display = "none";
     }
 
-    // Da li su, pored ?forma=, prosleđeni i stvarni parametri pretrage (znači da su rezultati
-    // već prikazani ispod) — u tom slučaju samu formu za unos više ne treba prikazivati,
-    // samo dugme "Назад на мени" i rezultate.
+   
     const imaRezultatePretrage = Array.from(urlParams.keys())
         .some(kljuc => kljuc !== 'forma' && urlParams.get(kljuc) !== '');
 
     let nekaFormaJePrikazana = false;
 
-    // Otvori pravu formu ako je prosleđen ?forma= parametar
     if (formaParam === 'student') {
         nekaFormaJePrikazana = true;
         prikaziFormu(studentskaForma);
@@ -137,16 +125,12 @@ document.addEventListener("DOMContentLoaded", function () {
     if (formaParam === 'pretrazi-azuriraj-studenta') { nekaFormaJePrikazana = true; prikaziFormu(formaPretraziAzuriratiStudenta); }
     if (formaParam === 'azuriraj-studenta') { nekaFormaJePrikazana = true; prikaziFormu(formaZaAzuriranjeStudenta); }
 
-    // ---- Meni je sakriven po defaultu u HTML-u (da ne bi bljesnuo na velikim stranicama, ----
-    // ---- npr. "сви студенти и сви професори"). Prikaži ga samo u pravom "default" stanju: ----
-    // ---- nijedna forma nije tražena I nije prikaz svih studenata/profesora. ----
+
     const sviStudentiIProfesoriParam = urlParams.get('sviStudentiISviProfesori') === 'true';
     if (!nekaFormaJePrikazana && !sviStudentiIProfesoriParam && meni) {
         meni.style.display = '';
     }
-
-    // ---- Admin ikonice: znamo ulogu odmah (sinhrono, iz servera), pa ih prikazujemo ----
-    // ---- ovde umesto da čekamo fetch — otud više ne trepere ni na "nazad". ----
+---
     if (user && user.role === 'admin') {
         [
             dugmeZaAzuriranjePodatakaOStudentu,
@@ -157,7 +141,6 @@ document.addEventListener("DOMContentLoaded", function () {
         ].forEach(dugme => { if (dugme) dugme.style.display = ''; });
     }
 
-    // ---- Modal za admina ----
     function prikaziAdminModal() {
         modal.classList.remove('hidden');
     }
@@ -166,7 +149,6 @@ document.addEventListener("DOMContentLoaded", function () {
         modal.classList.add('hidden');
     });
 
-    // ---- Admin zaštita ----
     function zahtevajAdmina(callback) {
         return (event) => {
             if (!user || !user.role || user.role !== 'admin') {
@@ -177,7 +159,6 @@ document.addEventListener("DOMContentLoaded", function () {
         };
     }
 
-    // ---- Zanimljivosti ----
     dugmeZanimljivosti.addEventListener('click', () => {
         meni.style.display = 'none';
         sekcija.style.display = 'block';
@@ -194,14 +175,12 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // ---- Dugmad za forme (admin) ----
     dugmeZaAzuriranjePodatakaOStudentu.addEventListener('click', zahtevajAdmina(() => { window.location.href = '/student-graph?forma=pretrazi-azuriraj-studenta'; }));
     dugmeZaBrisanjeStudenta.addEventListener('click',           zahtevajAdmina(() => { window.location.href = '/student-graph?forma=brisi-studenta'; }));
     dugmeZaBrisanjeProfesora.addEventListener('click',          zahtevajAdmina(() => { window.location.href = '/student-graph?forma=brisi-profesora'; }));
     dugmeZaDodavanjeNovogStudenta.addEventListener('click',     zahtevajAdmina(() => { window.location.href = '/student-graph?forma=dodaj-studenta'; }));
     dugmeZaDodavanjeNovogProfesora.addEventListener('click',    zahtevajAdmina(() => { window.location.href = '/student-graph?forma=dodaj-profesora'; }));
 
-    // ---- Ostala dugmad ----
     sviStudentiIProfesori.addEventListener('click', (event) => {
         event.preventDefault();
         window.location.href = '/student-graph?sviStudentiISviProfesori=true';
@@ -223,7 +202,6 @@ document.addEventListener("DOMContentLoaded", function () {
         prikaziStatistiku(ime_profesora, prezime_profesora);
     });
 
-    // ---- Rekurzivno (dostupno samo ako su oba čekirana) ----
     function prikaziRekurzivno() {
         if (mentorstvo.checked && clanKomisije.checked) {
             rekurzivno.disabled = false;
@@ -236,7 +214,6 @@ document.addEventListener("DOMContentLoaded", function () {
     mentorstvo.addEventListener("change", prikaziRekurzivno);
     clanKomisije.addEventListener("change", prikaziRekurzivno);
 
-    // ---- Dinamičko dodavanje članova komisije ----
     let brojClanova = 1;
     document.getElementById('dodaj-novog-clana-dugme').addEventListener('click', function () {
         brojClanova++;
@@ -267,8 +244,7 @@ document.addEventListener("DOMContentLoaded", function () {
         azuriranaKomisijaDiv.appendChild(azuriraniNoviClanDiv);
     });
 
-    // ---- Async: učitaj korisnika (potvrda + tekst statusa prijave gore desno). ----
-    // ---- Admin ikonice su već rešene sinhrono iznad, ovde im se ništa ne menja. ----
+   
     loadCurrentUser().then(() => {
         const authStatus = document.getElementById('auth-status');
         if (authStatus) {
@@ -285,7 +261,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-// ---- Disable/enable godina polja ----
 document.addEventListener("DOMContentLoaded", function () {
     const godinaOdbrane = document.getElementById('godina_odbrane');
     const godinaOd      = document.getElementById('godina_od');
