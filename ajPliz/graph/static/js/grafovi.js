@@ -1,4 +1,3 @@
-// grafovi.js — funkcije za navigaciju i prikaz grafova
 
 function cistiUrl() {
     return new URL(window.location.origin + window.location.pathname);
