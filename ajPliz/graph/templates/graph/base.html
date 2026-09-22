@@ -16,7 +16,6 @@
 
   <main class="container my-4">
 
-    {# ── Django Messages (замена за 20 if блокова) ── #}
     {% for message in messages %}
       <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
         {{ message }}
