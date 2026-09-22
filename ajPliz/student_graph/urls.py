@@ -16,15 +16,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
-from graph import views  # Uvezi svoje view-ove
+from graph import views  
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.student_graph, name='home'),  # početna = glavna stranica, auto-ulogovan kao gost
+    path('', views.student_graph, name='home'),  
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path("student-graph/", views.student_graph, name="student_graph"),
-   path('current-user/', views.get_current_user, name='current_user'),  # DODAJ OVO
+   path('current-user/', views.get_current_user, name='current_user'), 
     path('sviStudentiISviProfesori', views.student_graph,name = 'student_graph'),
     path('zanimljivosti/', views.zanimljivosti, name='zanimljivosti'),
     path('statistika', views.student_graph,name = 'student_graph')
