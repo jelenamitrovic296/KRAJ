@@ -14,8 +14,7 @@
 <div id="zanimljivosti-sekcija" style="display: none;"></div>
 
 <script>
-    // Server već zna ulogu iz sesije — nema potrebe čekati fetch() da bismo znali
-    // da li smo admin, pa admin ikonice ne trepere ni na klik "nazad".
+
     window.KORISNICKA_ULOGA = "{{ korisnicka_uloga|default:'guest' }}";
 </script>
 <div class="app-wrapper" id="meni" style="display:none;">
@@ -435,7 +434,6 @@
         </button>
     </form>
 </div>
-<!-- ===== MODAL ===== -->
 <div id="adminModal" class="modal hidden">
     <div class="modal-card">
         <h3>⚠️ Нема дозволе</h3>
