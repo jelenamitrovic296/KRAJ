@@ -1,4 +1,3 @@
-// brisanje_profesora.js — klik na "Избриши" u tabeli rezultata pretrage za brisanje profesora
 
 document.addEventListener("DOMContentLoaded", () => {
     const tabela = document.getElementById("tabela-profesora-za-brisanje");
