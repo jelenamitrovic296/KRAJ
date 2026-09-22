@@ -1,11 +1,11 @@
-/* RESET */
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* BODY */
+
 body {
     font-family: 'Segoe UI', Tahoma, sans-serif;
     background: linear-gradient(135deg, #eef2ff, #f8fafc);
@@ -17,7 +17,6 @@ body {
     grid-template-columns: 1fr 1fr;
     gap: 10px;
 }
-/* GLAVNI KONTEJNER */
 .app-wrapper {
     max-width: 1200px;
     margin: 80px auto;
@@ -28,7 +27,6 @@ body {
     position: relative;
 }
 
-/* PRIJAVA / ODJAVA */
 .auth-status {
     display: flex;
     align-items: center;
@@ -67,7 +65,6 @@ body {
     grid-template-columns: 1fr 1fr;
     gap: 10px;
 }
-/* HERO */
 .hero {
     text-align: center;
     margin-bottom: 60px;
@@ -83,14 +80,12 @@ body {
     color: #64748b;
 }
 
-/* KARTICE */
 .cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 35px;
 }
 
-/* JEDNA KARTICA */
 .card {
     background: linear-gradient(145deg, #ffffff, #f1f5f9);
     border-radius: 22px;
@@ -130,14 +125,12 @@ body {
     color: #6b7280;
 }
 
-/* FORMA WRAPPER */
 .form-wrapper {
     display: none;
     margin-top: 40px;
     width: 100%;
 }
 
-/* BACK DUGME */
 .back-btn {
     background: none;
     border: none;
@@ -150,13 +143,12 @@ body {
     margin-right: 8px;
 }
 
-/* SECTIONS */
 .form-sections {
-    display: flex;                 /* raspored levo-desno */
-    flex-wrap: wrap;               /* prelazak u novi red ako nema mesta */
-    gap: 5px;                     /* razmak između sekcija */
-    justify-content: center;       /* centriranje sekcija u sredini */
-    align-items: flex-start;       /* poravnanje vrha sekcija */
+    display: flex;                 
+    flex-wrap: wrap;               
+    gap: 5px;                    
+    justify-content: center;       
+    align-items: flex-start;       
     margin-top: 20px;
 }
 
@@ -182,7 +174,6 @@ body {
     padding-bottom: 6px;
 }
 
-/* INPUTI */
 .form-section input,
 .form-section select {
     width: 100%;
@@ -202,24 +193,21 @@ body {
     outline: none;
 }
 
-/* RADIO */
 .radio-group {
     display: flex;
     gap: 15px;
     margin: 15px 0;
 }
 
-/* BUTTON */
-/* MODERNI DUGMIĆI */
-/* MODERNI ŠIROKI DUGMIĆI */
+
 .form-section button:not(.back-arrow) {
-    display: block;             /* zauzima celokupnu širinu */
-    width: 100%;                /* isto kao širina forme */
+    display: block;            
+    width: 100%;              
     background: linear-gradient(135deg, #3b82f6, #6366f1);
     color: white;
     border: none;
-    padding: 16px 0;            /* veća visina dugmeta */
-    margin-bottom: 20px;        /* više razmaka između dugmića */
+    padding: 16px 0;           
+    margin-bottom: 20px;       
     border-radius: 20px;
     font-weight: 600;
     font-size: 16px;
@@ -254,7 +242,6 @@ body {
 }
 
 
-/* PORUKE */
 #poruka-greske,
 #poruka-greske-vise-studenata {
     color: #ef4444;
@@ -262,7 +249,6 @@ body {
     margin-top: 10px;
 }
 
-/* =================== TABELA =================== */
 .table-container {
     display: flex;
     justify-content: center;
@@ -270,17 +256,17 @@ body {
     overflow-x: auto;
 }
 .custom-table {
-    width: 95%; /* Povećano sa 90% da bi tekst imao više mesta */
+    width: 95%; 
     border-collapse: collapse;
     margin: 0 auto;
-    font-size: 18px; /* Povećano sa 15px za bolju čitljivost */
+    font-size: 18px; 
     border-radius: 12px;
     overflow: hidden;
     background-color: #ffffff;
     box-shadow: 0 8px 16px rgba(0,0,0,0.08);
 }
 .custom-table thead tr {
-    font-size: 16px; /* Naslovi kolona mogu biti mrvicu manji od sadržaja, ali jasni */
+    font-size: 16px; 
     background: #f3f4f6;
     color: #1e3a8a;
     font-weight: 700;
@@ -289,7 +275,7 @@ body {
 }
 .custom-table th,
 .custom-table td {
-    padding: 16px 20px; /* Povećan padding da ćelije ne bi bile "zgnječene" zbog većeg teksta */
+    padding: 16px 20px; 
     text-align: center;
     border-bottom: 1px solid #e5e7eb;
 }
@@ -304,7 +290,6 @@ body {
     color: white;
 }
 
-/* =================== GRAFOVI / DRVO =================== */
 #tree {
     margin: 50px auto;
     padding: 30px;
@@ -325,7 +310,6 @@ ol li {
     color: #1f2937;
 }
 
-/* SVG */
 svg {
     display: block;
     margin: 0 auto;
@@ -345,7 +329,6 @@ svg {
     stroke-width: 4px;
 }
 
-/* =================== RESPONSIVE =================== */
 @media (max-width: 900px) {
     .form-sections {
         flex-direction: column;
@@ -361,21 +344,16 @@ svg {
     }
 }
 
-/* ================= TIPOVI TEZE I VEZE ================= */
-
-/* Default link */
 .link {
     stroke: gray !important;
     fill: none;
     stroke-width: 3px;
 }
 
-/* Master rad */
 .link[stroke="orange"] {
     stroke: orange !important;
 }
 
-/* Doktorska teza */
 .link[stroke="purple"] {
     stroke: purple !important;
 }
@@ -436,7 +414,6 @@ svg {
 .back-arrow:hover {
     text-decoration: underline;
 }
-/* =================== NASLOVI TABELA =================== */
 .table-title {
     text-align: center;
     font-size: 22px;
@@ -471,7 +448,6 @@ svg {
 
 
 
-/* =================== DUGMIĆI U TABELAMA =================== */
 .custom-table button,
 .custom-table a.table-action-btn {
     background: linear-gradient(135deg, #3b82f6, #6366f1);
